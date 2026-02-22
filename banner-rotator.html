@@ -43,30 +43,34 @@
 
 <script>
     // ── НАСТРОЙКИ ──────────────────────────────────────────
-    var SHOW_SECONDS = 8;   // сколько секунд показывается каждый баннер
+    var BANNER1_SECONDS = 10;   // 1-й баннер: робот + слоган
+    var BANNER2_SECONDS = 25;   // 2-й баннер: обращение к инвесторам
     // ───────────────────────────────────────────────────────
 
     var banner1 = document.getElementById('banner1');
     var banner2 = document.getElementById('banner2');
     var current = 1;
 
-    function switchBanner() {
-        if (current === 1) {
-            banner1.classList.remove('visible');
-            banner1.classList.add('hidden');
-            banner2.classList.remove('hidden');
-            banner2.classList.add('visible');
-            current = 2;
-        } else {
-            banner2.classList.remove('visible');
-            banner2.classList.add('hidden');
-            banner1.classList.remove('hidden');
-            banner1.classList.add('visible');
-            current = 1;
-        }
+    function showBanner1() {
+        banner2.classList.remove('visible');
+        banner2.classList.add('hidden');
+        banner1.classList.remove('hidden');
+        banner1.classList.add('visible');
+        current = 1;
+        setTimeout(showBanner2, BANNER1_SECONDS * 1000);
     }
 
-    setInterval(switchBanner, SHOW_SECONDS * 1000);
+    function showBanner2() {
+        banner1.classList.remove('visible');
+        banner1.classList.add('hidden');
+        banner2.classList.remove('hidden');
+        banner2.classList.add('visible');
+        current = 2;
+        setTimeout(showBanner1, BANNER2_SECONDS * 1000);
+    }
+
+    // Запуск: сначала показываем 1-й баннер
+    setTimeout(showBanner2, BANNER1_SECONDS * 1000);
 </script>
 
 </body>
