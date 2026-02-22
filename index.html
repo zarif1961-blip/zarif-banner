@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ZARIF 2025 - Official Banner Final</title>
+    <style>
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #d4af37; }
+            50% { text-shadow: 0 0 30px #d4af37, 0 0 10px #fff; }
+            100% { text-shadow: 0 0 10px #d4af37; }
+        }
+
+        body { margin: 0; padding: 0; background: #000; color: white; font-family: 'Arial', sans-serif; overflow: hidden; }
+        
+        .zarif-banner {
+            width: 1920px;
+            height: 700px;
+            background: #000;
+            position: relative;
+            border-bottom: 5px solid #d4af37;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 1. ВЕРХНЯЯ ПАНЕЛЬ (Белый текст, одинаковый размер) */
+        .top-header {
+            height: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 60px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 10;
+        }
+        .top-header .header-item { 
+            color: #ffffff; 
+            text-decoration: none; 
+            font-size: 24px; 
+            font-weight: bold; 
+        }
+
+        /* 2. ОСНОВНАЯ ЗОНА */
+        .main-content {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            padding: 0 60px;
+            justify-content: space-between;
+        }
+
+        /* РОБОТ */
+        .robot-part {
+            flex: 0 0 550px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .robot-part img {
+            max-height: 500px;
+            width: auto;
+            filter: drop-shadow(0 0 25px rgba(0, 191, 255, 0.2));
+        }
+
+        /* ЦЕНТРАЛЬНЫЙ ТЕКСТ */
+        .text-part {
+            flex: 1;
+            padding: 0 40px;
+        }
+        .zarif-text {
+            font-size: 150px;
+            font-weight: 900;
+            color: #d4af37;
+            margin: 0;
+            animation: glow 3s infinite ease-in-out;
+            line-height: 0.9;
+        }
+        .future-subtitle { font-size: 42px; color: #00bfff; margin: 15px 0; font-weight: bold; letter-spacing: 2px; }
+        
+        /* Улучшенный перенос строки (for внизу) */
+        .slogan-box { 
+            font-size: 28px; 
+            color: #eee; 
+            border-left: 6px solid #d4af37; 
+            padding-left: 25px; 
+            margin-top: 30px;
+            line-height: 1.4;
+        }
+
+        /* 3. ПРАВАЯ ЧАСТЬ */
+        .author-part {
+            flex: 0 0 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .machine-small {
+            width: 400px;
+            height: auto;
+            border: 2px solid #d4af37;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        
+        /* Текст изобретателя (5 строк) */
+        .inventor-box {
+            border-left: 5px solid #00bfff;
+            padding-left: 20px;
+            text-align: left;
+        }
+        .inventor-info {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #fff;
+        }
+        .inv-label { 
+            color: #d4af37; 
+            font-weight: bold; 
+            font-size: 16px; 
+            text-transform: uppercase; 
+            margin-bottom: 5px; 
+            display: block; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="zarif-banner">
+    <div class="top-header">
+        <a href="http://www.zarif.uz" class="header-item">WWW.ZARIF.UZ</a>
+        <div class="header-item">ZARIF SEWING MACHINE CO., LTD.</div>
+        <a href="https://youtube.com/@ZarifTadjibaev" class="header-item">YouTube: @ZarifTadjibaev</a>
+        <img src="Логатип.png" alt="Logo" class="logo-img" style="height: 65px;">
+    </div>
+
+    <div class="main-content">
+        <div class="robot-part">
+            <img src="1_Анг.jpg" alt="Zarif Robot">
+        </div>
+
+        <div class="text-part">
+            <h1 class="zarif-text">ZARIF</h1>
+            <div class="future-subtitle">2025: THE FUTURE</div>
+            <div class="slogan-box">
+                The first technology fully optimized<br>
+                for Artificial Intelligence and humanoid robots.
+            </div>
+        </div>
+
+        <div class="author-part">
+            <img src="ZARIF_2025.JPG" alt="Zarif 2025 Machine" class="machine-small">
+            <div class="inventor-box">
+                <span class="inv-label">INVENTOR:</span>
+                <div class="inventor-info">
+                    <strong>Zarif Sharifovich Tadjibaev</strong><br>
+                    PhD in Technical Sciences<br>
+                    Founder and Director of<br>
+                    ZARIF SEWING MACHINE CO., LTD.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
