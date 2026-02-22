@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZARIF 2025 - Investment Proposal Banner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Source+Code+Pro:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #C8A84B; --gold-light: #E8C96A; --gold-dim: rgba(200,168,75,0.12);
+            --dark: #050810; --blue: #1A3A6B; --blue-bright: #2563EB;
+            --text: #E8EDF5; --text-dim: #8A9AB5; --accent: #4ECDC4; --green: #22C55E;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Rajdhani', Arial, sans-serif; }
+
+        .scale-wrapper { width: 1920px; height: 700px; transform-origin: top left; }
+
+        .zarif-banner {
+            width: 1920px; height: 700px;
+            background: var(--dark);
+            display: flex; flex-direction: column;
+            border-bottom: 5px solid #d4af37;
+            overflow: hidden; position: relative;
+        }
+
+        /* ── ДЕКОР ── */
+        .grid-bg {
+            position: absolute; inset: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(200,168,75,.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,168,75,.03) 1px, transparent 1px);
+            background-size: 56px 56px;
+        }
+        .top-bar { position: absolute; top: 100px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--blue), var(--gold), var(--accent)); z-index: 5; }
+        .ghost { position: absolute; font-family: 'Bebas Neue', sans-serif; color: rgba(200,168,75,.04); letter-spacing: 4px; pointer-events: none; user-select: none; font-size: 260px; right: -10px; bottom: 20px; z-index: 1; }
+
+        /* ── ВЕРХНЯЯ ПАНЕЛЬ ── */
+        .top-header {
+            height: 100px; flex-shrink: 0;
+            background: rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 60px;
+            border-bottom: 1px solid rgba(212,175,55,0.3);
+            z-index: 10;
+        }
+        .top-header .header-item { color: #fff; text-decoration: none; font-size: 26px; font-weight: bold; letter-spacing: 0.5px; }
+        .logo-img { height: 70px; width: auto; object-fit: contain; }
+        .logo-fallback { display: none; align-items: center; justify-content: center; height: 70px; padding: 0 12px; border: 2px solid #d4af37; font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: #d4af37; letter-spacing: 3px; }
+
+        /* ── НИЖНЯЯ ЗОНА ── */
+        .inv-wrap {
+            flex: 1; z-index: 2;
+            display: flex; flex-direction: column;
+            padding: 16px 60px 38px 60px;
+            gap: 12px;
+            background: linear-gradient(155deg, #050810 0%, #0D1E3A 100%);
+        }
+
+        /* Заголовок */
+        .sect-label { font-family: 'Source Code Pro', monospace; font-size: 12px; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; }
+        .inv-heading { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.5; }
+        .inv-heading .g    { color: var(--gold-light); }
+        .inv-heading .gold { color: var(--gold); font-weight: 700; }
+        .inv-heading .ac   { color: var(--accent); font-weight: 700; }
+
+        /* Бейджи */
+        .who-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .who-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(200,168,75,.35); background: var(--gold-dim); padding: 5px 16px; font-size: 15px; font-weight: 600; color: var(--gold-light); white-space: nowrap; }
+        .who-badge.bl { border-color: rgba(37,99,235,.4);  background: rgba(37,99,235,.10); color: #93C5FD; }
+        .who-badge.gr { border-color: rgba(34,197,94,.4);  background: rgba(34,197,94,.08); color: #86EFAC; }
+        .who-badge.ac { border-color: rgba(78,205,196,.4); background: rgba(78,205,196,.08); color: var(--accent); }
+
+        /* Сетка 2x2 */
+        .inv-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; flex: 1; }
+        .inv-card { border: 1px solid rgba(200,168,75,.25); background: rgba(200,168,75,.05); padding: 16px 22px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 7px; }
+        .inv-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); opacity: .6; }
+        .inv-card.ac-c { border-color: rgba(78,205,196,.3); background: rgba(78,205,196,.05); }
+        .inv-card.ac-c::before { background: linear-gradient(90deg, var(--accent), transparent); }
+        .inv-card.gr-c { border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.05); }
+        .inv-card.gr-c::before { background: linear-gradient(90deg, var(--green), transparent); }
+
+        .ic-label { font-family: 'Source Code Pro', monospace; font-size: 11px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+        .ic-label.ac { color: var(--accent); }
+        .ic-label.gr { color: var(--green); }
+        .ic-val { font-size: 17px; font-weight: 500; color: var(--text); line-height: 1.55; }
+        .ic-val em  { font-style: normal; color: var(--gold-light); font-weight: 700; }
+        .ic-val .bl { color: #93C5FD; font-weight: 700; }
+
+        /* Строка "Что получает инвестор" */
+        .full-row {
+            flex-shrink: 0;
+            display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+            border: 1px solid rgba(200,168,75,.25); background: rgba(200,168,75,.05);
+            padding: 11px 22px; position: relative;
+        }
+        .full-row::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); opacity: .6; }
+        .fr-label { font-family: 'Source Code Pro', monospace; font-size: 11px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-right: 6px; white-space: nowrap; }
+        .full-item { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; }
+        .dot { color: var(--text-dim); font-size: 18px; }
+
+        /* CTA */
+        .cta-bar { flex-shrink: 0; border-left: 4px solid var(--gold); background: var(--gold-dim); padding: 11px 20px; font-size: 18px; font-weight: 600; color: var(--gold-light); line-height: 1.45; }
+        .cta-bar strong { color: #fff; }
+
+        /* Футер */
+        .sf { position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: rgba(0,0,0,.6); border-top: 1px solid rgba(200,168,75,.15); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10; }
+        .sf-brand { font-family: 'Source Code Pro', monospace; font-size: 10px; letter-spacing: 3px; color: var(--gold); opacity: .6; text-transform: uppercase; }
+        .sf-num   { font-family: 'Source Code Pro', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); opacity: .45; }
+    </style>
+</head>
+<body>
+
+<div class="scale-wrapper" id="scaleWrapper">
+<div class="zarif-banner">
+
+    <div class="grid-bg"></div>
+    <div class="top-bar"></div>
+    <div class="ghost">INVEST</div>
+
+    <!-- ══ ВЕРХНЯЯ ПАНЕЛЬ ══ -->
+    <div class="top-header">
+        <a href="http://www.zarif.uz" class="header-item">WWW.ZARIF.UZ</a>
+        <div class="header-item">ZARIF SEWING MACHINE CO., LTD.</div>
+        <a href="https://youtube.com/@ZarifTadjibaev" class="header-item">YouTube: @ZarifTadjibaev</a>
+        <!-- Логотип: если файл не загружен на GitHub, покажет текстовую версию -->
+        <img src="logo.png" alt="ZARIF Logo" class="logo-img"
+             onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';">
+        <div id="logoFallback" class="logo-fallback">ZARIF</div>
+    </div>
+
+    <!-- ══ НИЖНЯЯ ЗОНА ══ -->
+    <div class="inv-wrap">
+
+        <!-- Заголовок -->
+        <div>
+            <div class="sect-label">Investment Proposal</div>
+            <div class="inv-heading">
+                <span class="g">Investment Proposal:</span> Establishing the world's first autonomous garment production facility based on <span class="gold">ZARIF 2025</span> — full integration of AI and humanoid robots for absolute automation of the sewing process. &nbsp;<span class="ac">Goal:</span> Transitioning to the fully autonomous factories of the future.
+            </div>
+        </div>
+
+        <!-- Кого ищем -->
+        <div class="who-row">
+            <div class="who-badge">💼 &nbsp; Large &amp; mid-size investors</div>
+            <div class="who-badge">🏭 &nbsp; Sewing equipment manufacturers</div>
+            <div class="who-badge bl">🤖 &nbsp; AI &amp; humanoid robot companies</div>
+            <div class="who-badge ac">🏢 &nbsp; Technology corporations</div>
+            <div class="who-badge gr">🌍 &nbsp; Government development funds</div>
+        </div>
+
+        <!-- Карточки 2x2 -->
+        <div class="inv-grid">
+
+            <div class="inv-card">
+                <div class="ic-label">Project Uniqueness</div>
+                <div class="ic-val">ZARIF 2025 is <em>the world's only technology</em> capable of creating truly autonomous sewing production. 31 years of R&amp;D, US Patent + three new patent applications. No competitor with a comparable solution <em>exists anywhere in the world</em>.</div>
+            </div>
+
+            <div class="inv-card ac-c">
+                <div class="ic-label ac">Market Potential</div>
+                <div class="ic-val">The global sewing equipment market exceeds <em class="bl">$6 billion per year</em>. The shift to robotic production unlocks a market worth <em class="bl">hundreds of billions of dollars</em> in apparel, technical textiles, and smart factories. ZARIF 2025 is the key to that transition.</div>
+            </div>
+
+            <div class="inv-card">
+                <div class="ic-label">Partnership Terms</div>
+                <div class="ic-val">We are open to establishing a <em>joint venture company</em> in a country with advanced industrial infrastructure — on mutually beneficial terms. The investor receives: <em>equity stake</em>, licensing rights, and full participation in shaping the development strategy.</div>
+            </div>
+
+            <div class="inv-card gr-c">
+                <div class="ic-label gr">Why Now</div>
+                <div class="ic-val">Humanoid robots (Tesla Optimus, Figure, Boston Dynamics) are entering the market. <em>They need a next-generation sewing machine.</em> Whoever enters first will set the industry standard for decades to come.</div>
+            </div>
+
+        </div>
+
+        <!-- Что получает инвестор -->
+        <div class="full-row">
+            <span class="fr-label">What the investor receives:</span>
+            <span class="full-item">✅ Proven working prototype</span><span class="dot">·</span>
+            <span class="full-item">✅ US Patent + 3 new applications</span><span class="dot">·</span>
+            <span class="full-item">✅ 31 years of know-how</span><span class="dot">·</span>
+            <span class="full-item">✅ 5-stage development roadmap</span><span class="dot">·</span>
+            <span class="full-item">✅ Compatible with any humanoid robot</span><span class="dot">·</span>
+            <span class="full-item">✅ First-mover positioning globally</span>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-bar">
+            📩 &nbsp; If you share our vision — <strong>contact us to discuss partnership terms.</strong> We welcome negotiations with serious investors and technology partners from any country in the world.
+        </div>
+
+    </div>
+
+    <div class="sf">
+        <span class="sf-brand">ZARIF 2025 · Investment Proposal</span>
+        <span class="sf-num">ZARIF SEWING MACHINE CO., LTD.</span>
+    </div>
+
+</div>
+</div>
+
+<script>
+    function scaleBanner() {
+        var wrapper = document.getElementById('scaleWrapper');
+        var scale = window.innerWidth / 1920;
+        wrapper.style.transform = 'scale(' + scale + ')';
+        document.body.style.height = (700 * scale) + 'px';
+    }
+    scaleBanner();
+    window.addEventListener('resize', scaleBanner);
+</script>
+</body>
+</html>
