@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZARIF 2025 - Banner Rotator</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+
+        .banner-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .banner-frame.hidden {
+            opacity: 0;
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+
+        .banner-frame.visible {
+            opacity: 1;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+    <iframe id="banner1"
+            src="https://zarif1961-blip.github.io/zarif-banner/"
+            class="banner-frame visible">
+    </iframe>
+
+    <iframe id="banner2"
+            src="https://zarif1961-blip.github.io/zarif-banner/banner2.html"
+            class="banner-frame hidden">
+    </iframe>
+
+<script>
+    // ── НАСТРОЙКИ ──────────────────────────────────────────
+    var SHOW_SECONDS = 8;   // сколько секунд показывается каждый баннер
+    // ───────────────────────────────────────────────────────
+
+    var banner1 = document.getElementById('banner1');
+    var banner2 = document.getElementById('banner2');
+    var current = 1;
+
+    function switchBanner() {
+        if (current === 1) {
+            banner1.classList.remove('visible');
+            banner1.classList.add('hidden');
+            banner2.classList.remove('hidden');
+            banner2.classList.add('visible');
+            current = 2;
+        } else {
+            banner2.classList.remove('visible');
+            banner2.classList.add('hidden');
+            banner1.classList.remove('hidden');
+            banner1.classList.add('visible');
+            current = 1;
+        }
+    }
+
+    setInterval(switchBanner, SHOW_SECONDS * 1000);
+</script>
+
+</body>
+</html>
