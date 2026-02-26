@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitor Counter Widget</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     ZARIF.UZ — ВИДЖЕТ СЧЁТЧИКА ПОСЕТИТЕЛЕЙ
+     ─────────────────────────────────────────────────────────────────
+     НАСТРОЙКА (3 шага):
+     1. Создайте проект на https://console.firebase.google.com
+     2. Включите Realtime Database (режим "test" для начала)
+     3. Вставьте ваши данные из Firebase Console ниже в раздел CONFIG
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set, get, update, increment, serverTimestamp, onDisconnect, push, remove }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ═══════════════════════════════════════
+  // ⚙️  ВСТАВЬТЕ ВАШИ ДАННЫЕ FIREBASE СЮДА
+  // ═══════════════════════════════════════
+  const firebaseConfig = {
+    apiKey:            "ВСТАВЬТЕ_СЮДА_apiKey",
+    authDomain:        "ВСТАВЬТЕ_СЮДА_authDomain",
+    databaseURL:       "ВСТАВЬТЕ_СЮДА_databaseURL",
+    projectId:         "ВСТАВЬТЕ_СЮДА_projectId",
+    storageBucket:     "ВСТАВЬТЕ_СЮДА_storageBucket",
+    messagingSenderId: "ВСТАВЬТЕ_СЮДА_messagingSenderId",
+    appId:             "ВСТАВЬТЕ_СЮДА_appId"
+  };
+  // ═══════════════════════════════════════
+
+  // Определяем раздел из URL параметра ?section=1 (от 1 до 9)
+  const urlParams = new URLSearchParams(window.location.search);
+  const section = urlParams.get('section') || '1';
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // Ключи в базе данных
+  const sectionKey   = `sections/section_${section}`;
+  const totalRef     = ref(db, `${sectionKey}/total`);
+  const todayRef     = ref(db, `${sectionKey}/today/${getTodayKey()}`);
+  const onlineRef    = ref(db, `${sectionKey}/online`);
+  const countriesRef = ref(db, `${sectionKey}/countries`);
+
+  function getTodayKey() {
+    return new Date().toISOString().slice(0, 10).replace(/-/g, '_');
+  }
+
+  // ── Определяем страну посетителя ──────────────────────────────────
+  async function getCountryInfo() {
+    try {
+      const res  = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      return { country: data.country_name || 'Unknown', code: data.country_code || 'XX' };
+    } catch {
+      return { country: 'Unknown', code: 'XX' };
+    }
+  }
+
+  // ── Флаг по коду страны ───────────────────────────────────────────
+  function flagEmoji(code) {
+    if (!code || code === 'XX') return '🌍';
+    return [...code.toUpperCase()].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join('');
+  }
+
+  // ── Регистрируем визит ────────────────────────────────────────────
+  async function registerVisit() {
+    const { country, code } = await getCountryInfo();
+
+    // Увеличиваем счётчики
+    await update(ref(db, sectionKey), {
+      total: increment(1)
+    });
+    await update(ref(db, `${sectionKey}/today`), {
+      [getTodayKey()]: increment(1)
+    });
+    await update(ref(db, `${sectionKey}/countries`), {
+      [code]: increment(1)
+    });
+
+    // Сохраняем имя страны для отображения
+    await update(ref(db, `${sectionKey}/countryNames`), {
+      [code]: country
+    });
+
+    return { country, code };
+  }
+
+  // ── Онлайн-присутствие (heartbeat) ────────────────────────────────
+  async function setupPresence() {
+    const myRef = push(ref(db, `${sectionKey}/online`));
+    await set(myRef, { t: Date.now() });
+    onDisconnect(myRef).remove();
+
+    // Чистим старые записи (старше 2 минут)
+    onValue(ref(db, `${sectionKey}/online`), (snap) => {
+      if (!snap.exists()) return updateOnline(0);
+      const now = Date.now();
+      let count = 0;
+      snap.forEach(child => {
+        const d = child.val();
+        if (d && now - d.t < 120000) count++;
+        else remove(child.ref);
+      });
+      updateOnline(count);
+    });
+
+    // Обновляем heartbeat каждые 30 сек
+    setInterval(() => set(myRef, { t: Date.now() }), 30000);
+  }
+
+  // ── Обновляем UI ──────────────────────────────────────────────────
+  function updateOnline(n) {
+    const el = document.getElementById('online-count');
+    if (el) el.textContent = n;
+  }
+
+  function updateTotal(n) {
+    animateCounter(document.getElementById('total-count'), n);
+  }
+
+  function updateToday(n) {
+    animateCounter(document.getElementById('today-count'), n);
+  }
+
+  function updateCountries(codesSnap, namesSnap) {
+    const container = document.getElementById('countries-list');
+    if (!container || !codesSnap.exists()) return;
+
+    const names = namesSnap.exists() ? namesSnap.val() : {};
+    const data  = codesSnap.val();
+
+    // Сортируем по количеству
+    const sorted = Object.entries(data)
+      .sort(([,a],[,b]) => b - a)
+      .slice(0, 8);
+
+    const max = sorted[0]?.[1] || 1;
+
+    container.innerHTML = sorted.map(([code, count]) => {
+      const name = names[code] || code;
+      const pct  = Math.round((count / max) * 100);
+      return `
+        <div class="country-row">
+          <span class="country-flag">${flagEmoji(code)}</span>
+          <span class="country-name">${name}</span>
+          <div class="country-bar-wrap">
+            <div class="country-bar" style="width:${pct}%"></div>
+          </div>
+          <span class="country-num">${count}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Анимация счётчика ─────────────────────────────────────────────
+  function animateCounter(el, target) {
+    if (!el) return;
+    const start = parseInt(el.textContent) || 0;
+    const diff  = target - start;
+    if (diff === 0) return;
+    const duration = 800;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min((now - startTime) / duration, 1);
+      el.textContent = Math.round(start + diff * easeOut(t));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // ── Подписываемся на данные ───────────────────────────────────────
+  onValue(totalRef, snap => updateTotal(snap.val() || 0));
+  onValue(todayRef, snap => updateToday(snap.val() || 0));
+  onValue(ref(db, `${sectionKey}/countries`), codesSnap => {
+    get(ref(db, `${sectionKey}/countryNames`)).then(namesSnap => {
+      updateCountries(codesSnap, namesSnap);
+    });
+  });
+
+  // ── Устанавливаем раздел в заголовке ─────────────────────────────
+  const sectionNames = {
+    '1': 'Главная',      '2': 'О нас',     '3': 'Услуги',
+    '4': 'Портфолио',   '5': 'Команда',   '6': 'Новости',
+    '7': 'Партнёры',    '8': 'Контакты',  '9': 'Прочее'
+  };
+  const nameEl = document.getElementById('section-name');
+  if (nameEl) nameEl.textContent = sectionNames[section] || `Раздел ${section}`;
+
+  // ── Старт ─────────────────────────────────────────────────────────
+  window.addEventListener('load', async () => {
+    await registerVisit();
+    await setupPresence();
+  });
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #161923;
+    --border:    rgba(255,255,255,0.07);
+    --accent:    #c8a96e;
+    --accent2:   #7eb8f7;
+    --text:      #e8eaf0;
+    --muted:     #6b7280;
+    --online:    #4ade80;
+    --radius:    14px;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .widget {
+    width: 100%;
+    max-width: 560px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,169,110,0.1);
+    animation: fadeIn .5s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── Header ── */
+  .widget-header {
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(200,169,110,0.06) 0%, transparent 60%);
+  }
+
+  .widget-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .section-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'Syne', sans-serif;
+    text-transform: uppercase;
+  }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-card {
+    padding: 18px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    transition: background .2s;
+  }
+
+  .stat-card:not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
+
+  .stat-card:hover { background: rgba(255,255,255,0.02); }
+
+  .stat-icon {
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: -.02em;
+  }
+
+  .stat-value.online-val { color: var(--online); }
+  .stat-value.today-val  { color: var(--accent2); }
+  .stat-value.total-val  { color: var(--accent); }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .online-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--online);
+    border-radius: 50%;
+    margin-right: 5px;
+    animation: pulse 1.8s ease-in-out infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(74,222,128,.4); }
+    50%      { opacity:.7; box-shadow: 0 0 0 5px rgba(74,222,128,0); }
+  }
+
+  /* ── Countries ── */
+  .countries-section {
+    padding: 14px 20px 16px;
+  }
+
+  .countries-title {
+    font-size: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  #countries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .country-row {
+    display: grid;
+    grid-template-columns: 22px 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .country-flag { font-size: 15px; line-height: 1; }
+
+  .country-name {
+    color: #b0b8c8;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .country-bar-wrap {
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    min-width: 40px;
+  }
+
+  .country-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width .8s cubic-bezier(.16,1,.3,1);
+  }
+
+  .country-num {
+    color: var(--muted);
+    font-size: 11px;
+    font-family: 'Syne', sans-serif;
+    min-width: 22px;
+    text-align: right;
+  }
+
+  .placeholder {
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  /* ── Footer ── */
+  .widget-footer {
+    padding: 9px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    font-size: 10px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: .06em;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .footer-time {
+    font-size: 10px;
+    color: rgba(255,255,255,0.12);
+    letter-spacing: .04em;
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+
+  <!-- Header -->
+  <div class="widget-header">
+    <div class="widget-title">📊 Статистика раздела</div>
+    <div class="section-label" id="section-name">Раздел</div>
+  </div>
+
+  <!-- 3 main stats -->
+  <div class="stats-row">
+
+    <div class="stat-card">
+      <div class="stat-icon">🌐</div>
+      <div class="stat-value total-val" id="total-count">0</div>
+      <div class="stat-label">Всего визитов</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value today-val" id="today-count">0</div>
+      <div class="stat-label">Сегодня</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon"><span class="online-dot"></span></div>
+      <div class="stat-value online-val" id="online-count">0</div>
+      <div class="stat-label">Онлайн сейчас</div>
+    </div>
+
+  </div>
+
+  <!-- Countries -->
+  <div class="countries-section">
+    <div class="countries-title">🌍 Страны посетителей</div>
+    <div id="countries-list">
+      <div class="placeholder">Загрузка данных…</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="widget-footer">
+    <div class="footer-brand">zarif.uz · analytics</div>
+    <div class="footer-time" id="footer-time"></div>
+  </div>
+
+</div>
+
+<script>
+  // Обновляем время в footer
+  function updateTime() {
+    const t = new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+    const el = document.getElementById('footer-time');
+    if (el) el.textContent = t;
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+</script>
+
+</body>
+</html>
