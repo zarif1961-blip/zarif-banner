@@ -3,332 +3,434 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zarif Translate Widget</title>
+<title>Translate</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 6px 12px;
-    min-height: 52px;
-    overflow: hidden;
-  }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: transparent;
+  overflow: visible;
+  padding: 5px 8px;
+}
 
-  .widget {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.97);
-    border: 1px solid #d0d7e3;
-    border-radius: 10px;
-    padding: 6px 10px;
-    box-shadow: 0 2px 12px rgba(0,60,120,0.10), 0 1px 3px rgba(0,0,0,0.07);
-    backdrop-filter: blur(8px);
-  }
+.widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f5ff 100%);
+  border: 1.5px solid #b8ccec;
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-shadow: 0 2px 12px rgba(0,50,150,0.12);
+}
 
-  .globe-icon {
-    font-size: 18px;
-    line-height: 1;
-    flex-shrink: 0;
-    user-select: none;
-  }
+/* Globe icon */
+.globe {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  background: #1a73e8;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: bold;
+}
 
-  .select-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
+/* Dropdown wrapper */
+.dd-wrap { position: relative; z-index: 1000; }
 
-  select {
-    appearance: none;
-    -webkit-appearance: none;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-family: inherit;
-    font-size: 13.5px;
-    color: #1a2a4a;
-    cursor: pointer;
-    padding-right: 20px;
-    min-width: 160px;
-    max-width: 200px;
-    line-height: 1.4;
-  }
+/* Selected box */
+.dd-box {
+  display: flex; align-items: center; gap: 6px;
+  background: #fff;
+  border: 1.5px solid #b8ccec;
+  border-radius: 7px;
+  padding: 4px 26px 4px 8px;
+  cursor: pointer;
+  min-width: 180px;
+  font-size: 13px; color: #1a2a4a;
+  position: relative;
+  white-space: nowrap; overflow: hidden;
+  transition: border-color .15s;
+  user-select: none;
+}
+.dd-box:hover { border-color: #1a73e8; }
 
-  select option {
-    font-size: 13px;
-    color: #1a2a4a;
-    background: #fff;
-  }
+/* Flag inside box */
+.dd-box .flag-img {
+  width: 22px; height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.dd-box .flag-fb {
+  width: 22px; height: 15px;
+  border-radius: 2px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 8px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
 
-  .chevron {
-    position: absolute;
-    right: 2px;
-    pointer-events: none;
-    color: #5578a0;
-    font-size: 10px;
-  }
+.arrow {
+  position: absolute; right: 7px; top: 50%;
+  transform: translateY(-50%);
+  color: #7090bb; font-size: 9px; pointer-events: none;
+}
 
-  .divider {
-    width: 1px;
-    height: 22px;
-    background: #d0d7e3;
-    flex-shrink: 0;
-  }
+/* Dropdown list */
+.dd-list {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px); left: 0;
+  background: #fff;
+  border: 1.5px solid #b8ccec;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0,40,120,0.18);
+  max-height: 320px; overflow-y: auto;
+  min-width: 230px; z-index: 9999;
+}
+.dd-list.open { display: block; }
 
-  .btn {
-    background: linear-gradient(135deg, #1a73e8 0%, #0d5bd1 100%);
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    padding: 6px 14px;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 0.02em;
-    transition: all 0.18s ease;
-    white-space: nowrap;
-    box-shadow: 0 1px 4px rgba(26,115,232,0.35);
-    flex-shrink: 0;
-  }
+/* Search */
+.search-box {
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid #e5eaf5;
+  position: sticky; top: 0;
+  background: #fff; z-index: 5;
+}
+.search-box input {
+  width: 100%;
+  border: 1.5px solid #b8ccec;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 12.5px; outline: none;
+  font-family: inherit; color: #1a2a4a;
+}
+.search-box input:focus { border-color: #1a73e8; }
 
-  .btn:hover {
-    background: linear-gradient(135deg, #1765cc 0%, #0b4fba 100%);
-    box-shadow: 0 2px 8px rgba(26,115,232,0.45);
-    transform: translateY(-1px);
-  }
+/* Option row */
+.opt {
+  display: flex; align-items: center; gap: 9px;
+  padding: 6px 13px;
+  font-size: 13px; color: #1a2a4a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .1s;
+}
+.opt:hover { background: #eef4fc; }
+.opt.active { background: #dce8fb; font-weight: 600; }
+.opt.hidden { display: none; }
 
-  .btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(26,115,232,0.3);
-  }
+.opt .flag-img {
+  width: 22px; height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+}
+.opt .flag-fb {
+  width: 22px; height: 15px;
+  border-radius: 2px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 8px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
 
-  .btn:disabled {
-    background: #b0c4de;
-    box-shadow: none;
-    cursor: default;
-    transform: none;
-  }
+/* Divider */
+.sep { width:1px; height:22px; background:#c0d0e8; flex-shrink:0; }
 
-  #msg {
-    font-size: 11.5px;
-    color: #c0392b;
-    display: none;
-    margin-left: 4px;
-    white-space: nowrap;
-  }
+/* Button */
+.btn {
+  background: linear-gradient(135deg, #1a73e8 0%, #0c57c8 100%);
+  color: #fff; border: none; border-radius: 7px;
+  padding: 6px 15px; font-size: 13px; font-weight: 700;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 1px 6px rgba(26,115,232,.4);
+  transition: all .15s; flex-shrink: 0;
+}
+.btn:hover {
+  background: linear-gradient(135deg, #1558c0 0%, #0945a8 100%);
+  box-shadow: 0 3px 12px rgba(26,115,232,.45);
+  transform: translateY(-1px);
+}
+.btn:active { transform: translateY(0); }
+
+#err {
+  font-size: 11px; color: #c0392b;
+  display: none; margin-left: 2px;
+}
+
+/* Scrollbar */
+.dd-list::-webkit-scrollbar { width: 5px; }
+.dd-list::-webkit-scrollbar-track { background: #f0f4fb; }
+.dd-list::-webkit-scrollbar-thumb { background: #b8ccec; border-radius: 5px; }
 </style>
 </head>
 <body>
-<div class="widget">
-  <span class="globe-icon">🌐</span>
 
-  <div class="select-wrapper">
-    <select id="langSelect" onchange="clearMsg()">
-      <option value="">— Select language —</option>
-      <option value="af">🇿🇦 Afrikaans</option>
-      <option value="sq">🇦🇱 Albanian</option>
-      <option value="am">🇪🇹 Amharic</option>
-      <option value="ar">🇸🇦 Arabic</option>
-      <option value="hy">🇦🇲 Armenian</option>
-      <option value="as">🇮🇳 Assamese</option>
-      <option value="ay">🇧🇴 Aymara</option>
-      <option value="az">🇦🇿 Azerbaijani</option>
-      <option value="bm">🇲🇱 Bambara</option>
-      <option value="eu">🇪🇸 Basque</option>
-      <option value="be">🇧🇾 Belarusian</option>
-      <option value="bn">🇧🇩 Bengali</option>
-      <option value="bho">🇮🇳 Bhojpuri</option>
-      <option value="bs">🇧🇦 Bosnian</option>
-      <option value="bg">🇧🇬 Bulgarian</option>
-      <option value="ca">🇪🇸 Catalan</option>
-      <option value="ceb">🇵🇭 Cebuano</option>
-      <option value="zh-CN">🇨🇳 Chinese (Simplified)</option>
-      <option value="zh-TW">🇹🇼 Chinese (Traditional)</option>
-      <option value="co">🇫🇷 Corsican</option>
-      <option value="hr">🇭🇷 Croatian</option>
-      <option value="cs">🇨🇿 Czech</option>
-      <option value="da">🇩🇰 Danish</option>
-      <option value="dv">🇲🇻 Dhivehi</option>
-      <option value="doi">🇮🇳 Dogri</option>
-      <option value="nl">🇳🇱 Dutch</option>
-      <option value="en">🇬🇧 English</option>
-      <option value="eo">🌍 Esperanto</option>
-      <option value="et">🇪🇪 Estonian</option>
-      <option value="ee">🇬🇭 Ewe</option>
-      <option value="fil">🇵🇭 Filipino</option>
-      <option value="fi">🇫🇮 Finnish</option>
-      <option value="fr">🇫🇷 French</option>
-      <option value="fy">🇳🇱 Frisian</option>
-      <option value="gl">🇪🇸 Galician</option>
-      <option value="ka">🇬🇪 Georgian</option>
-      <option value="de">🇩🇪 German</option>
-      <option value="el">🇬🇷 Greek</option>
-      <option value="gn">🇵🇾 Guarani</option>
-      <option value="gu">🇮🇳 Gujarati</option>
-      <option value="ht">🇭🇹 Haitian Creole</option>
-      <option value="ha">🇳🇬 Hausa</option>
-      <option value="haw">🇺🇸 Hawaiian</option>
-      <option value="he">🇮🇱 Hebrew</option>
-      <option value="hi">🇮🇳 Hindi</option>
-      <option value="hmn">🇱🇦 Hmong</option>
-      <option value="hu">🇭🇺 Hungarian</option>
-      <option value="is">🇮🇸 Icelandic</option>
-      <option value="ig">🇳🇬 Igbo</option>
-      <option value="ilo">🇵🇭 Ilocano</option>
-      <option value="id">🇮🇩 Indonesian</option>
-      <option value="ga">🇮🇪 Irish</option>
-      <option value="it">🇮🇹 Italian</option>
-      <option value="ja">🇯🇵 Japanese</option>
-      <option value="jv">🇮🇩 Javanese</option>
-      <option value="kn">🇮🇳 Kannada</option>
-      <option value="kk">🇰🇿 Kazakh</option>
-      <option value="km">🇰🇭 Khmer</option>
-      <option value="rw">🇷🇼 Kinyarwanda</option>
-      <option value="gom">🇮🇳 Konkani</option>
-      <option value="ko">🇰🇷 Korean</option>
-      <option value="kri">🇸🇱 Krio</option>
-      <option value="ku">🇹🇷 Kurdish (Kurmanji)</option>
-      <option value="ckb">🇮🇶 Kurdish (Sorani)</option>
-      <option value="ky">🇰🇬 Kyrgyz</option>
-      <option value="lo">🇱🇦 Lao</option>
-      <option value="la">🏛️ Latin</option>
-      <option value="lv">🇱🇻 Latvian</option>
-      <option value="ln">🇨🇩 Lingala</option>
-      <option value="lt">🇱🇹 Lithuanian</option>
-      <option value="lg">🇺🇬 Luganda</option>
-      <option value="lb">🇱🇺 Luxembourgish</option>
-      <option value="mk">🇲🇰 Macedonian</option>
-      <option value="mai">🇮🇳 Maithili</option>
-      <option value="mg">🇲🇬 Malagasy</option>
-      <option value="ms">🇲🇾 Malay</option>
-      <option value="ml">🇮🇳 Malayalam</option>
-      <option value="mt">🇲🇹 Maltese</option>
-      <option value="mi">🇳🇿 Maori</option>
-      <option value="mr">🇮🇳 Marathi</option>
-      <option value="mni-Mtei">🇮🇳 Meitei (Manipuri)</option>
-      <option value="lus">🇮🇳 Mizo</option>
-      <option value="mn">🇲🇳 Mongolian</option>
-      <option value="my">🇲🇲 Myanmar (Burmese)</option>
-      <option value="ne">🇳🇵 Nepali</option>
-      <option value="no">🇳🇴 Norwegian</option>
-      <option value="ny">🇲🇼 Nyanja (Chichewa)</option>
-      <option value="or">🇮🇳 Odia (Oriya)</option>
-      <option value="om">🇪🇹 Oromo</option>
-      <option value="ps">🇦🇫 Pashto</option>
-      <option value="fa">🇮🇷 Persian</option>
-      <option value="pl">🇵🇱 Polish</option>
-      <option value="pt">🇵🇹 Portuguese</option>
-      <option value="pa">🇮🇳 Punjabi</option>
-      <option value="qu">🇵🇪 Quechua</option>
-      <option value="ro">🇷🇴 Romanian</option>
-      <option value="ru">🇷🇺 Russian</option>
-      <option value="sm">🇼🇸 Samoan</option>
-      <option value="sa">🇮🇳 Sanskrit</option>
-      <option value="gd">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scots Gaelic</option>
-      <option value="nso">🇿🇦 Sepedi</option>
-      <option value="sr">🇷🇸 Serbian</option>
-      <option value="st">🇱🇸 Sesotho</option>
-      <option value="sn">🇿🇼 Shona</option>
-      <option value="sd">🇵🇰 Sindhi</option>
-      <option value="si">🇱🇰 Sinhala</option>
-      <option value="sk">🇸🇰 Slovak</option>
-      <option value="sl">🇸🇮 Slovenian</option>
-      <option value="so">🇸🇴 Somali</option>
-      <option value="es">🇪🇸 Spanish</option>
-      <option value="su">🇮🇩 Sundanese</option>
-      <option value="sw">🇰🇪 Swahili</option>
-      <option value="sv">🇸🇪 Swedish</option>
-      <option value="tl">🇵🇭 Tagalog</option>
-      <option value="tg">🇹🇯 Tajik</option>
-      <option value="ta">🇮🇳 Tamil</option>
-      <option value="tt">🇷🇺 Tatar</option>
-      <option value="te">🇮🇳 Telugu</option>
-      <option value="th">🇹🇭 Thai</option>
-      <option value="ti">🇪🇷 Tigrinya</option>
-      <option value="ts">🇿🇦 Tsonga</option>
-      <option value="tr">🇹🇷 Turkish</option>
-      <option value="tk">🇹🇲 Turkmen</option>
-      <option value="ak">🇬🇭 Twi (Akan)</option>
-      <option value="uk">🇺🇦 Ukrainian</option>
-      <option value="ur">🇵🇰 Urdu</option>
-      <option value="ug">🇨🇳 Uyghur</option>
-      <option value="uz">🇺🇿 Uzbek</option>
-      <option value="vi">🇻🇳 Vietnamese</option>
-      <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh</option>
-      <option value="xh">🇿🇦 Xhosa</option>
-      <option value="yi">🇮🇱 Yiddish</option>
-      <option value="yo">🇳🇬 Yoruba</option>
-      <option value="zu">🇿🇦 Zulu</option>
-    </select>
-    <span class="chevron">▾</span>
+<div class="widget">
+
+  <!-- Globe icon -->
+  <div class="globe">&#9679;</div>
+
+  <!-- Dropdown -->
+  <div class="dd-wrap" id="ddWrap">
+
+    <div class="dd-box" id="ddBox" onclick="toggleDD()">
+      <img class="flag-img" id="selImg"
+           src="https://flagcdn.com/w40/gb.png"
+           onerror="this.style.display='none'; document.getElementById('selFb').style.display='inline-flex';"
+           alt="" style="display:none;">
+      <span class="flag-fb" id="selFb" style="display:none;">EN</span>
+      <span id="selTxt">&#8212; Select language &#8212;</span>
+      <span class="arrow">&#9660;</span>
+    </div>
+
+    <div class="dd-list" id="ddList">
+      <div class="search-box">
+        <input id="ddSearch" type="text"
+               placeholder="Search language..."
+               oninput="filterOpts(this.value)">
+      </div>
+      <!-- options built by JS -->
+    </div>
   </div>
 
-  <div class="divider"></div>
-
-  <button class="btn" id="translateBtn" onclick="doTranslate()">Translate</button>
-  <span id="msg">⚠ Please select a language</span>
+  <div class="sep"></div>
+  <button class="btn" onclick="doTranslate()">Translate</button>
+  <span id="err">&#9888; Select language</span>
 </div>
 
 <script>
-  // Base site URL — update this if your domain ever changes
-  var SITE_BASE = 'https://www.zarif.uz/';
+// ══════════════════════════════════════════════════════
+// Languages supported by Yandex Translate (website mode)
+// Format: [yandexCode, flagCountryCode, displayName]
+// ══════════════════════════════════════════════════════
+var LANGS = [
+  ["af","za","Afrikaans"],
+  ["sq","al","Albanian"],
+  ["am","et","Amharic"],
+  ["ar","sa","Arabic"],
+  ["hy","am","Armenian"],
+  ["az","az","Azerbaijani"],
+  ["eu","es","Basque"],
+  ["be","by","Belarusian"],
+  ["bn","bd","Bengali"],
+  ["bs","ba","Bosnian"],
+  ["bg","bg","Bulgarian"],
+  ["ca","es","Catalan"],
+  ["ceb","ph","Cebuano"],
+  ["zh","cn","Chinese (Simplified)"],
+  ["hr","hr","Croatian"],
+  ["cs","cz","Czech"],
+  ["da","dk","Danish"],
+  ["nl","nl","Dutch"],
+  ["en","gb","English"],
+  ["eo","un","Esperanto"],
+  ["et","ee","Estonian"],
+  ["fi","fi","Finnish"],
+  ["fr","fr","French"],
+  ["gl","es","Galician"],
+  ["ka","ge","Georgian"],
+  ["de","de","German"],
+  ["el","gr","Greek"],
+  ["gu","in","Gujarati"],
+  ["ht","ht","Haitian Creole"],
+  ["he","il","Hebrew"],
+  ["hi","in","Hindi"],
+  ["hu","hu","Hungarian"],
+  ["is","is","Icelandic"],
+  ["id","id","Indonesian"],
+  ["ga","ie","Irish"],
+  ["it","it","Italian"],
+  ["ja","jp","Japanese"],
+  ["jv","id","Javanese"],
+  ["kn","in","Kannada"],
+  ["kk","kz","Kazakh"],
+  ["km","kh","Khmer"],
+  ["ko","kr","Korean"],
+  ["ky","kg","Kyrgyz"],
+  ["lo","la","Lao"],
+  ["lv","lv","Latvian"],
+  ["lt","lt","Lithuanian"],
+  ["mk","mk","Macedonian"],
+  ["mg","mg","Malagasy"],
+  ["ms","my","Malay"],
+  ["ml","in","Malayalam"],
+  ["mt","mt","Maltese"],
+  ["mi","nz","Maori"],
+  ["mr","in","Marathi"],
+  ["mn","mn","Mongolian"],
+  ["ne","np","Nepali"],
+  ["no","no","Norwegian"],
+  ["fa","ir","Persian"],
+  ["pl","pl","Polish"],
+  ["pt","pt","Portuguese"],
+  ["pa","in","Punjabi"],
+  ["ro","ro","Romanian"],
+  ["ru","ru","Russian"],
+  ["sr","rs","Serbian"],
+  ["si","lk","Sinhala"],
+  ["sk","sk","Slovak"],
+  ["sl","si","Slovenian"],
+  ["so","so","Somali"],
+  ["es","es","Spanish"],
+  ["sw","ke","Swahili"],
+  ["sv","se","Swedish"],
+  ["tl","ph","Tagalog"],
+  ["tg","tj","Tajik"],
+  ["ta","in","Tamil"],
+  ["te","in","Telugu"],
+  ["th","th","Thai"],
+  ["tr","tr","Turkish"],
+  ["tk","tm","Turkmen"],
+  ["uk","ua","Ukrainian"],
+  ["ur","pk","Urdu"],
+  ["uz","uz","Uzbek"],
+  ["vi","vn","Vietnamese"],
+  ["cy","gb","Welsh"],
+  ["xh","za","Xhosa"],
+  ["yi","il","Yiddish"],
+  ["yo","ng","Yoruba"],
+  ["zu","za","Zulu"]
+];
 
-  function clearMsg() {
-    document.getElementById('msg').style.display = 'none';
-  }
+var curLang = null;
+var ddOpen  = false;
 
-  function doTranslate() {
-    var lang = document.getElementById('langSelect').value;
-    if (!lang) {
-      document.getElementById('msg').style.display = 'inline';
-      return;
-    }
+// ── Build options ──────────────────────────────────
+function buildOpts() {
+  var list = document.getElementById('ddList');
+  LANGS.forEach(function(row) {
+    var code = row[0], flag = row[1], name = row[2];
 
-    // Try to get the real current page URL from the parent window
-    // document.referrer is readable cross-origin (unlike window.parent.location)
-    var pageUrl = document.referrer || SITE_BASE;
+    var div = document.createElement('div');
+    div.className = 'opt';
+    div.dataset.code = code;
+    div.dataset.flag = flag;
+    div.dataset.name = name.toLowerCase();
 
-    // If referrer is empty or isn't our site, use the base URL
-    if (!pageUrl || pageUrl.indexOf('zarif.uz') === -1) {
-      pageUrl = SITE_BASE;
-    }
+    // Flag image with colored-box fallback
+    var img = document.createElement('img');
+    img.className = 'flag-img';
+    img.src = 'https://flagcdn.com/w40/' + flag + '.png';
+    img.alt  = flag;
+    img.setAttribute('loading','lazy');
 
-    // Remove any existing Google Translate wrapping if user is already on translated version
-    if (pageUrl.indexOf('translate.google') !== -1 || pageUrl.indexOf('translate.goog') !== -1) {
-      // Try to extract the original URL from Google's proxy URL
-      var match = pageUrl.match(/[?&]u=([^&]+)/);
-      if (match) {
-        pageUrl = decodeURIComponent(match[1]);
-      } else {
-        pageUrl = SITE_BASE;
-      }
-    }
+    var fb  = document.createElement('span');
+    fb.className = 'flag-fb';
+    fb.textContent = flag.toUpperCase().substring(0,2);
+    fb.style.display = 'none';
 
-    var translateUrl =
-      'https://translate.google.com/translate?sl=en&tl=' +
-      encodeURIComponent(lang) +
-      '&u=' +
-      encodeURIComponent(pageUrl);
+    img.onerror = function() {
+      img.style.display = 'none';
+      fb.style.display  = 'inline-flex';
+    };
 
-    // Navigate the top-level window (works cross-origin for navigation)
-    try {
-      window.top.location.href = translateUrl;
-    } catch (e) {
-      // Fallback: open in same tab
-      window.location.href = translateUrl;
-    }
-  }
+    var lbl = document.createElement('span');
+    lbl.textContent = name;
 
-  // Allow pressing Enter in the select to trigger translation
-  document.getElementById('langSelect').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doTranslate();
+    div.appendChild(img);
+    div.appendChild(fb);
+    div.appendChild(lbl);
+    div.onclick = function() { pick(code, flag, name); };
+    list.appendChild(div);
   });
+}
+
+// ── Pick a language ────────────────────────────────
+function pick(code, flag, name) {
+  curLang = code;
+
+  // Update selected box
+  var si = document.getElementById('selImg');
+  var sf = document.getElementById('selFb');
+  si.src = 'https://flagcdn.com/w40/' + flag + '.png';
+  si.style.display = 'inline-block';
+  sf.style.display = 'none';
+  si.onerror = function() {
+    si.style.display = 'none';
+    sf.textContent   = flag.toUpperCase().substring(0,2);
+    sf.style.display = 'inline-flex';
+  };
+
+  document.getElementById('selTxt').textContent = name;
+  document.getElementById('err').style.display  = 'none';
+
+  document.querySelectorAll('.opt').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.code === code);
+  });
+  closeDD();
+}
+
+// ── Dropdown open/close ────────────────────────────
+function toggleDD() { ddOpen ? closeDD() : openDD(); }
+
+function openDD() {
+  ddOpen = true;
+  document.getElementById('ddList').classList.add('open');
+  document.getElementById('ddSearch').value = '';
+  filterOpts('');
+  setTimeout(function(){ document.getElementById('ddSearch').focus(); }, 60);
+}
+
+function closeDD() {
+  ddOpen = false;
+  document.getElementById('ddList').classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (ddOpen && !document.getElementById('ddWrap').contains(e.target)) closeDD();
+});
+
+// ── Filter ─────────────────────────────────────────
+function filterOpts(q) {
+  q = (q||'').toLowerCase().trim();
+  document.querySelectorAll('.opt').forEach(function(el) {
+    el.classList.toggle('hidden', !!q && el.dataset.name.indexOf(q) === -1);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// TRANSLATE via Yandex Translate
+// (works in Uzbekistan — no translate.goog needed)
+// URL format:
+//   https://translate.yandex.com/translate?url=PAGE&lang=en-LANG
+// ══════════════════════════════════════════════════
+function doTranslate() {
+  if (!curLang) {
+    document.getElementById('err').style.display = 'inline';
+    return;
+  }
+
+  // Detect current page URL from referrer
+  var pageUrl = document.referrer || 'https://www.zarif.uz/';
+  if (!pageUrl || pageUrl.indexOf('zarif.uz') === -1) {
+    pageUrl = 'https://www.zarif.uz/';
+  }
+  // Strip any previous Yandex wrapping
+  if (pageUrl.indexOf('translate.yandex') !== -1) {
+    pageUrl = 'https://www.zarif.uz/';
+  }
+
+  var targetUrl =
+    'https://translate.yandex.com/translate' +
+    '?url='  + encodeURIComponent(pageUrl) +
+    '&lang=en-' + encodeURIComponent(curLang);
+
+  try { window.top.location.href = targetUrl; }
+  catch(e) { window.location.href = targetUrl; }
+}
+
+// ── Init ──────────────────────────────────────────
+buildOpts();
 </script>
 </body>
 </html>
